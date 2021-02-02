@@ -141,8 +141,8 @@ def Encrypt(h, msg):
     global t
     e = reduce(ChiErr(2))
     s = reduce(ChiErr(2))
-    print("e = ", e)
-    print("s = ", s)
+    # print("e = ", e)
+    # print("s = ", s)
 
     delta = math.floor(q/t)
     c = [delta*x for x in msg]
@@ -158,11 +158,20 @@ def Decrypt(f, c):
 
     return reduce_t(M)
 
-d, polynomials = ParamsGen()
+def HomomorphicAddition(c1, c2):
+    A = np.polyadd(c1, c2)
+    return reduce(A).tolist()
+
+# d, polynomials = ParamsGen()
 genProbabilities()
 # print(d, phid, q, t)
 
-f_prime, g, f_inv, h, f = KeyGen(d, polynomials)
+# f_prime, g, f_inv, h, f = KeyGen(d, polynomials)
+f_prime = [0, 1, -1, 1]
+g = [-1, -1, 0, 0]
+f = [-4, 1]
+h = [-40, -36]
+f_inv = [12, 53]
 print("f_prime =",f_prime,"g =", g,"f_inv =", f_inv,"h =", h,"f =", f)
 f = reduce(f)
 print("f_prime =",f_prime,"g =", g,"f_inv =", f_inv,"h =", h,"f =", f)
@@ -187,4 +196,21 @@ final_msg = Decrypt(f, c)
 print("Final message obtained is")
 print(final_msg)
 
+# Homomorphic Addition
+print("Enter two messages (a1, b1) and (a2, b2) to encrypt")
+s1 = input()
+s2 = input()
+msg1 = s1.split()
+msg2 = s2.split()
+msg1[:] = [int(x) for x in msg1]
+msg2[:] = [int(x) for x in msg2]
+print("The messages entered are:")
+print("message1: ", msg1)
+print("message2: ", msg2)
+
+c1 = Encrypt(h, reduce_t(msg1))
+c2 = Encrypt(h, reduce_t(msg2))
+
+final_msg = Decrypt(f, HomomorphicAddition(c1, c2))
+print(final_msg)
 # e = ChiErr
