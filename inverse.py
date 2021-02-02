@@ -4,6 +4,7 @@ d = 4
 phid = [1, 0, 1]
 polynomials = []
 q = 13
+t = 7
 
 def reduce(p):
     global phid
@@ -30,18 +31,25 @@ def genPolynomials(q, d):
     recurse(0, d, q, myPol)
 
 genPolynomials(q, d/2)
-print(len(polynomials))
+# print(len(polynomials))
 
-print("Enter polynomial to find inverse")
+# print("Enter polynomial to find inverse")
 
-poly = []
-for i in range (0, 3):
+message = []
+print("Enter message")
+for i in range (0, 5):
     ele = int(input())
-    poly.append(ele)
+    message.append(ele)
+
+def keygen(d, q, t, chikey, chierr):
+
+def encrypt(h, m):
+
+def decrypt(f, c):
 
 for p in polynomials:
     # print(p)
-    f_f_inv = (reduce(np.polymul(p, poly))).tolist()
+    f_f_inv = (reduce(np.polymul(p, message))).tolist()
     if f_f_inv == [1]:
         print(p)
         break
