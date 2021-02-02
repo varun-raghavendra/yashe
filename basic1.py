@@ -3,13 +3,13 @@ import numpy as np
 import math
 
 phid = [1, 0, 1]
-q = 13
-t = 7
+q = 29
+t = 5
 probabilities = []
 pi = 3.141592653589793
 exp= 2.718281828459045
 B = 18
-sigma = np.floor(B//6)
+sigma = np.floor(B/6)
 
 def reduce(p):
     global phid
@@ -157,6 +157,11 @@ print(msg)
 c = Encrypt(h, reduce_t(msg))
 print("Cipher text obtained is")
 print(c)
+
+delta = math.floor(q/t)
+del_msg = [delta*x for x in msg]
+print("inherent noise in encryption is:")
+print(reduce(np.polysub(np.polymul(f, c), del_msg)))
 
 final_msg = Decrypt(f, c)
 print("Final message obtained is")

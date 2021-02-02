@@ -3,8 +3,8 @@ import numpy as np
 import math
 
 phid = [1, 0, 1]
-q = 13
-t = 7
+q = 29
+t = 5
 probabilities = []
 pi = 3.141592653589793
 exp= 2.718281828459045
@@ -103,18 +103,20 @@ def KeyGen(d, polynomials):
             break
     
     h = reduce(np.polymul(g, f_inv))
+    print(h)
     h_prime = [x*t for x in h]
     h = reduce(h_prime)
+    # print(h)
     
     return f_prime, g, f_inv, reduce(h.tolist()), reduce(f)
 
 def Encrypt(h, msg):
     global q
     global t
-    e = reduce(ChiErr(2))
-    s = reduce(ChiErr(2))
-    print("e = ", e)
-    print("s = ", s)
+    e = ChiErr(2)
+    s = ChiErr(2)
+    # print("e = ", e)
+    # print("s = ", s)
     
     delta = math.floor(q/t)
     c = [delta*x for x in msg]
@@ -124,6 +126,10 @@ def Encrypt(h, msg):
     return reduce(c)
 
 def Decrypt(f, c):
+    # print(np.polymul(f, c))
+    f_c = np.polymul(f, c)
+    Q1, R1 = np.polydiv(f_c, phid)
+    print(R1)
     M = reduce(np.polymul(f, c)).tolist()
     # print(M)
     M[:] = [round(x*t/q) for x in M]
