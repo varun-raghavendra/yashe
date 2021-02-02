@@ -3,8 +3,8 @@ import numpy as np
 import math
 
 phid = [1, 0, 1]
-q = 29
-t = 5
+q = 100
+t = 4
 probabilities = []
 pi = 3.141592653589793
 exp= 2.718281828459045
@@ -35,13 +35,33 @@ def reduce_t(p):
         R[i]-=t
     return R
 
+def reduceMod(p):
+    global phid
+    global q
+    p[:] = [x % q for x in p]
+    # print(p)
+    Q, R = np.polydiv(p, phid)
+    R[:] = [x % q for x in R]
+    
+    return R
+
+def reduceMod_t(p):
+    global phid
+    global t
+    p[:] = [x % t for x in p]
+    # print(p)
+    Q, R = np.polydiv(p, phid)
+    R[:] = [x % t for x in R]
+    
+    return R
+
 def recurse(pos, d, myPol, polynomials):
 #     global polynomials
     global q
     if pos == d+1:
         # print(myPol)
         newList = [int(x) for x in myPol]
-        newList = reduce(newList)
+        newList = reduceMod(newList)
         polynomials.append(newList)
         return
     for i in range (0, q):
@@ -87,7 +107,7 @@ def ParamsGen():
 
 def inverse(f, polynomials):
     for p in polynomials:
-        f_f_inv = (reduce(np.polymul(p, f))).tolist()
+        f_f_inv = (reduceMod(np.polymul(p, f))).tolist()
         if f_f_inv == [1]:
 #             print(p)
             return p
@@ -97,8 +117,8 @@ def KeyGen(d, polynomials):
     global phid
     global q
     global t
-    f_prime = ChiKey().tolist()
-    g = ChiKey().tolist()
+    f_prime = ChiErr(d)
+    g = ChiErr(d)
     f = [x*t for x in f_prime]
     f[-1] += 1
     reduce(f)
