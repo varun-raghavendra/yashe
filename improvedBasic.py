@@ -4,9 +4,9 @@ import random
 import numpy as np
 import math
 
-phid = [1, 0, 1]
-q = 2003
-t = 7
+phid = [1, 0, 0, 0, 0, 0, 0, 0, 1]
+q = 10472900001
+t = 100
 probabilities = []
 pi = 3.141592653589793
 exp= 2.718281828459045
@@ -102,7 +102,7 @@ def ChiKey():
     return coeff
 
 def ParamsGen():
-    d = 4
+    d = 16
     return d
 
 def inverse(f):
@@ -134,12 +134,19 @@ def KeyGen(d):
     f[-1] += 1
     reduce(f)
 
-    print("f_prime = ", f_prime)
-    print("g = ", g)
-    print("f = ", f)
+    # print("f_prime = ", f_prime)
+    # print("g = ", g)
+    # print("f = ", f)
     f_inv = []
     while True:
-        X = (inverse(f))
+        try:
+            X = (inverse(f))
+        except:
+            f_prime = ChiErr(d)
+            f = [x*t for x in f_prime]
+            f[-1] += 1
+            reduce(f)
+            continue
         f_inv = [int(x) for x in X]
         if f_inv != [-1]:
             break
@@ -208,7 +215,7 @@ print(reduce(np.polysub(np.polymul(f, c), del_msg)))
 
 final_msg = Decrypt(f, c)
 print("Final message obtained is")
-print(final_msg)
+print(reduceMod_t(final_msg))
 
 # Homomorphic Addition
 print("Enter two messages (a1, b1) and (a2, b2) to encrypt")
@@ -226,5 +233,7 @@ c1 = Encrypt(h, reduce_t(msg1))
 c2 = Encrypt(h, reduce_t(msg2))
 
 final_msg = Decrypt(f, HomomorphicAddition(c1, c2))
-print(final_msg)
+print("First cipher text is: ", c1)
+print("Second cipher text is: ", c2)
+print("Homomorphic Addition is ", reduceMod_t(final_msg))
 # e = ChiErr
