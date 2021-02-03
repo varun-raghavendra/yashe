@@ -1,10 +1,12 @@
+from sympy.polys.domains import ZZ
+from sympy.polys.galoistools import gf_gcdex
 import random
 import numpy as np
 import math
 
 phid = [1, 0, 1]
-q = 100
-t = 4
+q = 2003
+t = 7
 probabilities = []
 pi = 3.141592653589793
 exp= 2.718281828459045
@@ -101,19 +103,28 @@ def ChiKey():
 
 def ParamsGen():
     d = 4
-    polynomials = []
-    genPolynomials(d/2, polynomials)
-    return d, polynomials
+    return d
 
-def inverse(f, polynomials):
-    for p in polynomials:
-        f_f_inv = (reduceMod(np.polymul(p, f))).tolist()
-        if f_f_inv == [1]:
-#             print(p)
-            return p
-    return [-1]
+def inverse(f):
+    global phid
+    global q
+    p = ZZ.map(f)
+    mod = ZZ.map(phid)
+    s, t, g = gf_gcdex(p, mod, q, ZZ)
+    if len(g) == 1 and g[0] == 1: 
+        return s
+    else:
+        return [-1]
 
-def KeyGen(d, polynomials):
+# def inverse(f, polynomials):
+#     for p in polynomials:
+#         f_f_inv = (reduceMod(np.polymul(p, f))).tolist()
+#         if f_f_inv == [1]:
+# #             print(p)
+#             return p
+#     return [-1]
+
+def KeyGen(d):
     global phid
     global q
     global t
@@ -123,9 +134,12 @@ def KeyGen(d, polynomials):
     f[-1] += 1
     reduce(f)
 
+    print("f_prime = ", f_prime)
+    print("g = ", g)
+    print("f = ", f)
     f_inv = []
     while True:
-        X = (inverse(f, polynomials))
+        X = (inverse(f))
         f_inv = [int(x) for x in X]
         if f_inv != [-1]:
             break
@@ -162,11 +176,11 @@ def HomomorphicAddition(c1, c2):
     A = np.polyadd(c1, c2)
     return reduce(A).tolist()
 
-d, polynomials = ParamsGen()
+d = ParamsGen()
 genProbabilities()
 # print(d, phid, q, t)
 
-f_prime, g, f_inv, h, f = KeyGen(d, polynomials)
+f_prime, g, f_inv, h, f = KeyGen(d)
 # f_prime = [0, 1, -1, 1]
 # g = [-1, -1, 0, 0]
 # f = [-4, 1]
