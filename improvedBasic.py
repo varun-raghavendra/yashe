@@ -4,6 +4,17 @@ import random
 import numpy as np
 import math
 
+"""
+Things we can polish:
+
+1. Take variables out of global scope,
+2. Shrink reduce, reduce_t to one function,
+3. Fix a ratio between B and q
+4. Make function to derive PhiD for a given d
+5. Make a demo function that formats output neatly, for final demo.
+
+"""
+
 phid = [1, 0, 0, 0, 0, 0, 0, 0, 1]
 q = 1040101
 t = 50
