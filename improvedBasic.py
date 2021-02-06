@@ -14,6 +14,7 @@ B = 18
 sigma = np.floor(B/6)
 
 def reduce(p):
+    # Put the given polynomial in the range [-q/2, q/2)
     global phid
     global q
     p[:] = [x % q for x in p]
@@ -26,6 +27,7 @@ def reduce(p):
     return R
 
 def reduce_t(p):
+    # Put the given polynomial in the range [-t/2, t/2)
     global phid
     global t
     p[:] = [x % t for x in p]
@@ -38,6 +40,7 @@ def reduce_t(p):
     return R
 
 def reduceMod(p):
+    # Put the given polynomial in the range [-0, q)
     global phid
     global q
     p[:] = [x % q for x in p]
@@ -48,6 +51,7 @@ def reduceMod(p):
     return R
 
 def reduceMod_t(p):
+    # Put the given polynomial in the range [-0, t)
     global phid
     global t
     p[:] = [x % t for x in p]
@@ -58,7 +62,7 @@ def reduceMod_t(p):
     return R
 
 def recurse(pos, d, myPol, polynomials):
-#     global polynomials
+    # Make every polynomial in Z[X]
     global q
     if pos == d+1:
         # print(myPol)
@@ -72,11 +76,13 @@ def recurse(pos, d, myPol, polynomials):
         myPol.pop()
 
 def genPolynomials(d, polynomials):
+    # Initialiser function to call recurse and set up polynomial space.
     global q
     myPol = []
     recurse(0, d, myPol, polynomials)
 
 def genProbabilities():
+    # Make probability space assuming B is our upper limit for Chi
     global probabilities
     global B
     sum = 0
@@ -87,9 +93,12 @@ def genProbabilities():
     probabilities[:] = [x / sum for x in probabilities]
 
 def sample():
+    # Returns a random sample from -B+1 to B, according to the 
+    # probability space
     return np.random.choice(np.arange(-1*B+1, B), p=probabilities)
 
 def ChiErr(n):
+    # Makes a small coefficient polynomial from the Chi function
     poly = []
     for i in range (0, n):
         ele = sample()
@@ -97,15 +106,18 @@ def ChiErr(n):
     return poly
 
 def ChiKey():
+    # NOT IN USE.
     global q
     coeff = np.array([random.randint(1,q-1) for i in range((d>>1)+1)])
     return coeff
 
 def ParamsGen():
+    # initialiser function.
     d = 16
     return d
 
 def inverse(f):
+    # Fast inverse method 
     global phid
     global q
     p = ZZ.map(f)
@@ -117,6 +129,7 @@ def inverse(f):
         return [-1]
 
 # def inverse(f, polynomials):
+#     # Deprecated slow inverse
 #     for p in polynomials:
 #         f_f_inv = (reduceMod(np.polymul(p, f))).tolist()
 #         if f_f_inv == [1]:
