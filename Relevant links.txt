@@ -1,0 +1,15 @@
+Paper we're implementing:
+https://www.microsoft.com/en-us/research/wp-content/uploads/2013/02/075.pdf
+
+
+[2] https://eprint.iacr.org/2012/078.pdf
+[3] https://eprint.iacr.org/2011/277.pdf
+[8] https://eprint.iacr.org/2012/144.pdf
+
+Fast inverse method:
+https://stackoverflow.com/questions/52654760/find-the-inverse-reciprocal-of-a-polynomial-modulo-another-polynomial-with-coe
+
+
+Helpful YT links-UNORDERED:
+https://www.youtube.com/watch?v=37Ri1jpl5p8
+https://www.youtube.com/watch?v=g7L_r6zw4-c
