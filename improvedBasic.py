@@ -63,7 +63,7 @@ def reduceMod_t(p):
 
 # def recurse(pos, d, myPol, polynomials):
 #     # Deprecated function to make every polynomial in Z[X]
-#     # Was used to find inverse.
+#     
 #     global q
 #     if pos == d+1:
 #         # print(myPol)
@@ -103,24 +103,26 @@ def genProbabilities():
         sum += x
     probabilities = [x / sum for x in probabilities]
 
-def sample():
+def sample(B):
     # Returns a random sample from -B+1 to B, according to the 
     # probability space
     return np.random.choice(np.arange(-1*B+1, B), p=probabilities)
 
-def ChiErr(n):
-    # Makes a small coefficient polynomial from the Chi function
+def ChiErr(n, B_err = B):
+    # Makes a small coefficient error polynomial from the Chi function
     poly = []
     for i in range (0, n):
-        ele = sample()
+        ele = sample(B_err)
         poly.append(ele)
     return poly
 
-def ChiKey():
-    # NOT IN USE.
-    global q
-    coeff = np.array([random.randint(1,q-1) for i in range((d>>1)+1)])
-    return coeff
+def ChiKey(n, B_key = B):
+    # Makes a small coefficient key polynomial from the Chi function
+    poly = []
+    for i in range (0, n):
+        ele = sample(B_key)
+        poly.append(ele)
+    return poly
 
 def ParamsGen():
     # initialiser function.
@@ -170,13 +172,13 @@ def KeyGen(d):
     h_prime = [x*t for x in h]
     h = reduce(h_prime)
 
-    return f_prime, g, f_inv, reduce(h.tolist()), reduce(f)
+    return f_prime, g, f_inv, reduce(h), reduce(f)
 
 def Encrypt(h, msg):
     global q
     global t
     e = reduce(ChiErr(9)) #This shouldn't be 2, it should be some 
-    s = reduce(ChiErr(9)) #dependent of d, no?
+    s = reduce(ChiKey(9)) #dependent of d, no?
 
 
     print("e = ", e)
@@ -190,7 +192,7 @@ def Encrypt(h, msg):
     return reduce(c)
 
 def Decrypt(f, c):
-    M = reduce(np.polymul(f, c)).tolist()
+    M = reduce(np.polymul(f, c))
     # print(M)
     M = [round(x*t/q) for x in M]
 
@@ -198,7 +200,7 @@ def Decrypt(f, c):
 
 def HomomorphicAddition(c1, c2):
     A = np.polyadd(c1, c2)
-    return reduce(A).tolist()
+    return reduce(A)
 
 d = ParamsGen()
 genProbabilities()
