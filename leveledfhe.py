@@ -7,26 +7,28 @@ import math
 phid = [1, 0, 0, 0, 0, 0, 0, 0, 1]
 q = 1040101
 t = 50
+w = 4
 probabilities = []
 pi = 3.141592653589793
 exp= 2.718281828459045
 B = 18
 sigma = np.floor(B/6)
 
-def reduce(p, mod, centered=True):
+def reduce(p, mod, centered=True, divide=True):
     # Put the given polynomial in the range [-mod/2, mod/2) if centered,
     # and to [0,mod) if not centered.
     global phid
 
-    p = [x % mod for x in p]
+    R = [x % mod for x in p]
     # print(p)
-    Q, R = np.polydiv(p, phid)
-    R = [x % mod for x in R]
+    if divide:
+        Q, R = np.polydiv(p, phid)
+        R = [x % mod for x in R]
 
     if centered:
         for i in range(len(R)):
-        if R[i]>mod//2:
-            R[i]-=mod
+            if R[i]>mod//2:
+                R[i]-=mod
 
     return R
 
@@ -74,7 +76,7 @@ def inverse(f):
     else:
         return [-1]
 
-def ParamsGen(lambda=987654321):
+def ParamsGen(Lambda=987654321):
     """
     Given security parameter lambda, initialise d, q, t, ChiKey, 
     ChiErr, and w, where w is an integer > 1
@@ -86,4 +88,21 @@ def ParamsGen(lambda=987654321):
 
 def KeyGen():
     d, w = ParamsGen()
+
+q = 7
+w = 2
+
+def BitDecomp(x):
+    Lwq = int(np.floor(np.log(q)/np.log(w)))+2
+    # Lwq = 3
+    res = []
+    x_bar = x
+    for i in range(1, Lwq):
+        x_bar = [xi* w for xi in x_bar]
+        x_bar = reduce(x_bar, q, centered=True, divide=False)
+        print(type(x_bar))
+        res.append(x_bar)
     
+    print(res)
+
+BitDecomp([1, 2])
