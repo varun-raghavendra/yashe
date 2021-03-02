@@ -47,7 +47,7 @@ def genProbabilities():
     probabilities = [x / sum for x in probabilities]
 
 def sample(B):
-    # Returns a random sample from -B+1 to B, according to the 
+    # Returns a random sample from -B+1 to B, according to the
     # probability space
     return np.random.choice(np.arange(-1*B+1, B), p=probabilities)
 
@@ -68,20 +68,20 @@ def ChiKey(n, B_key = B):
     return poly
 
 def inverse(f):
-    # Fast inverse method 
+    # Fast inverse method
     global phid
     global q
     p = ZZ.map(f)
     mod = ZZ.map(phid)
     s, t, g = gf_gcdex(p, mod, q, ZZ)
-    if len(g) == 1 and g[0] == 1: 
+    if len(g) == 1 and g[0] == 1:
         return s
     else:
         return [-1]
 
 def ParamsGen(Lambda=987654321):
     """
-    Given security parameter lambda, initialise d, q, t, ChiKey, 
+    Given security parameter lambda, initialise d, q, t, ChiKey,
     ChiErr, and w, where w is an integer > 1
     """
     global d
@@ -139,19 +139,58 @@ def LHE_KeyGen():
 
     return f_prime, g, f_inv, h, f
 
+def split_to_bits(x, w, Lwq):
+    ans = []
+    temp = []
+
+    base = w
+    temp = np.zeros(Lwq)
+    
+    if(x<0):
+        # temp[Lwq-1]+=1
+        x = pow(w, Lwq)+x
+    
+    idx = Lwq-1
+
+    while(x):
+        t = x%w
+        temp[idx]=t
+        idx-=1
+        x = x//w
+    
+    print(temp)
+
+# split_to_bits(-1, 2, 6)     
 
 def BitDecomp(x):
     Lwq = int(np.floor(np.log(q)/np.log(w)))+2
     # Lwq = 3
     res = []
-    x_bar = x
-    for i in range(1, Lwq):
-        x_bar = [xi* w for xi in x_bar]
-        x_bar = reduce(x_bar, q, centered=True, divide=False)
-        print(type(x_bar))
-        res.append(x_bar)
     
+    for x_coeff in x:
+        temp = split_to_bits(x_coeff, w, Lwq)
+        res.append(temp)
+        
+
     print(res)
+
+    return res
+
+def pow_of_2(x):
+    #global lwq
+    global w
+    lwq =  math.floor(math.log(q) / math.log(w)) + 2
+
+    z = x
+    y = []
+    for i in range(lwq):
+        z = [j*(w**i) for j in x]
+        #print(i,z,reduce(z))
+        z=reduce(z, q)
+        if z==[0.0]:
+            z=z*len(x)
+        y.append(z)
+    return y
 
 # BitDecomp([1, 2])
 
@@ -208,22 +247,24 @@ def LHE_Addition(c1, c2):
 
 
 
-f_prime, g, f_inv, h, f = LHE_KeyGen()
-print("Enter two messages (a1, b1) and (a2, b2) to encrypt")
-s1 = input()
-s2 = input()
-msg1 = s1.split()
-msg2 = s2.split()
-msg1 = [int(x) for x in msg1]
-msg2 = [int(x) for x in msg2]
-print("The messages entered are:")
-print("message1: ", msg1)
-print("message2: ", msg2)
+# f_prime, g, f_inv, h, f = LHE_KeyGen()
+# print("Enter two messages (a1, b1) and (a2, b2) to encrypt")
+# s1 = input()
+# s2 = input()
+# msg1 = s1.split()
+# msg2 = s2.split()
+# msg1 = [int(x) for x in msg1]
+# msg2 = [int(x) for x in msg2]
+# print("The messages entered are:")
+# print("message1: ", msg1)
+# print("message2: ", msg2)
 
-c1 = LHE_Encrypt(h, reduce(msg1, t, centered=True))
-c2 = LHE_Encrypt(h, reduce(msg2, t, centered=True))
+# c1 = LHE_Encrypt(h, reduce(msg1, t, centered=True))
+# c2 = LHE_Encrypt(h, reduce(msg2, t, centered=True))
 
-final_msg = LHE_Decrypt(f, LHE_Addition(c1, c2))
-print("First cipher text is: ", c1)
-print("Second cipher text is: ", c2)
-print("Homomorphic Addition is ", reduce(final_msg, t))
+# final_msg = LHE_Decrypt(f, LHE_Addition(c1, c2))
+# print("First cipher text is: ", c1)
+# print("Second cipher text is: ", c2)
+# print("Homomorphic Addition is ", reduce(final_msg, t))
+
+
