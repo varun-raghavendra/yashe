@@ -3,6 +3,7 @@ from sympy.polys.galoistools import gf_gcdex
 import random
 import numpy as np
 import math
+import itertools
 
 phid = [1, 0, 0, 0, 0, 0, 0, 0, 1]
 d = 16
@@ -79,24 +80,6 @@ def inverse(f):
     else:
         return [-1]
 
-def ParamsGen(Lambda=987654321):
-    """
-    Given security parameter lambda, initialise d, q, t, ChiKey,
-    ChiErr, and w, where w is an integer > 1
-    """
-    global d
-    global q
-    global t
-    global B
-    global n
-
-    chi_key = ChiKey(n) 
-    chi_err = ChiErr(n)
-
-    d = 16
-    w = sample(B)
-
-    return d, w
 
 def Basic_KeyGen(d):
     global phid
@@ -131,13 +114,6 @@ def Basic_KeyGen(d):
 
     return f_prime, g, f_inv, reduce(h, q, centered=True), reduce(f, q, centered=True)
 
-def LHE_KeyGen():
-    global d
-
-    genProbabilities()
-    f_prime, g, f_inv, h, f = Basic_KeyGen(d)
-
-    return f_prime, g, f_inv, h, f
 
 def split_to_bits(x, w, Lwq):
     ans = []
@@ -175,12 +151,29 @@ def BitDecomp(x):
         
 
     # print(res)
+    res = np.asarray(res)
+    # The res here, is the coefficients themselves as an Lwq array. 
+    # We won't be adding directly to these, but we'll be adding to the
+    # columns of the array. So it makes sense to split it into that 
+    # form and send.
 
-    return res
+    print(res)
+    ans = []
 
-q = 8
-w = 2
-print(BitDecomp([-3, 1, -1]))
+    for i in range(Lwq):
+        temp = res[:, i]
+        temp = list(np.squeeze(temp))
+        print(temp)
+        ans.append(temp)
+
+    # Now each vector in ans is an element of R, and has as many coefficients as 
+    # we'd expect.
+
+    return ans
+
+# q = 8
+# w = 2
+# print(BitDecomp([-3, 1, -1]))
 
 def pow_of_2(x):
     #global lwq
@@ -192,11 +185,56 @@ def pow_of_2(x):
     for i in range(lwq):
         z = [j*(w**i) for j in x]
         #print(i,z,reduce(z))
-        z=reduce(z, q)
+        z=reduce(z, q, centered=True)
         if z==[0.0]:
             z=z*len(x)
         y.append(z)
     return y
+
+
+# print(pow_of_2([1,2]))
+
+def LHE_ParamsGen(Lambda=987654321):
+    """
+    Given security parameter lambda, initialise d, q, t, ChiKey,
+    ChiErr, and w, where w is an integer > 1
+    """
+    global d
+    global q
+    global t
+    global B
+    global n
+
+    chi_key = ChiKey(n) 
+    chi_err = ChiErr(n)
+
+    d = 16
+    w = sample(B)
+
+    return d, q, t, chi_key, chi_err
+
+
+def LHE_KeyGen():
+    global d
+
+    genProbabilities()
+    f_prime, g, f_inv, h, f = Basic_KeyGen(d)
+    Lwq = int(np.floor(np.log(q)/np.log(w)))+2
+
+    e = reduce(ChiErr(Lwq), q, centered=True)
+    s = reduce(ChiKey(Lwq), q, centered=True)
+
+    Gamma = pow_of_2(f)
+
+    print(Gamma)
+
+    for x in Gamma:
+        x = np.polymul(h, s) + e + x
+        x = reduce(x, q, centered=True)
+
+    print(Gamma)
+
+    return f_prime, g, f_inv, h, f
 
 def LHE_Encrypt(h, msg):
     # Same as Basic Encrypt
