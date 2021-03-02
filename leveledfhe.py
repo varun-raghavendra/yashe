@@ -150,12 +150,12 @@ def split_to_bits(x, w, Lwq):
         # temp[Lwq-1]+=1
         x = pow(w, Lwq)+x
     
-    idx = Lwq-1
+    idx = 0
 
     while(x):
         t = x%w
         temp[idx]=t
-        idx-=1
+        idx+=1
         x = x//w
     
     # print(temp)
@@ -178,7 +178,9 @@ def BitDecomp(x):
 
     return res
 
-print(BitDecomp([1, 2]))
+q = 8
+w = 2
+print(BitDecomp([-3, 1, -1]))
 
 def pow_of_2(x):
     #global lwq
