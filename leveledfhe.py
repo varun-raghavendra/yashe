@@ -85,6 +85,8 @@ def Basic_KeyGen(d):
     global phid
     global q
     global t
+    global B
+
     f_prime = ChiErr(d)
     g = ChiErr(d)
     f = [x*t for x in f_prime]
@@ -157,13 +159,14 @@ def BitDecomp(x):
     # columns of the array. So it makes sense to split it into that 
     # form and send.
 
-    print(res)
+    # print(res)
     ans = []
 
     for i in range(Lwq):
         temp = res[:, i]
         temp = list(np.squeeze(temp))
-        print(temp)
+        temp = reduce(temp, q, centered=True)
+        # print(temp)
         ans.append(temp)
 
     # Now each vector in ans is an element of R, and has as many coefficients as 
@@ -205,36 +208,54 @@ def LHE_ParamsGen(Lambda=987654321):
     global B
     global n
 
-    chi_key = ChiKey(n) 
-    chi_err = ChiErr(n)
+    genProbabilities()
+
+    # chi_key = ChiKey(n) 
+    # chi_err = ChiErr(n)
 
     d = 16
     w = sample(B)
 
-    return d, q, t, chi_key, chi_err
+    return d, q, t
 
 
 def LHE_KeyGen():
     global d
-
-    genProbabilities()
+ 
     f_prime, g, f_inv, h, f = Basic_KeyGen(d)
     Lwq = int(np.floor(np.log(q)/np.log(w)))+2
 
     e = reduce(ChiErr(Lwq), q, centered=True)
     s = reduce(ChiKey(Lwq), q, centered=True)
 
-    Gamma = pow_of_2(f)
+    temp = pow_of_2(f)
 
-    print(Gamma)
+    # print("size of ")
+    # print("s, ", str(len(s)))
+    # print("h, ", str(len(h)))
+    # print("e, ", str(len(e)))
 
-    for x in Gamma:
-        x = np.polymul(h, s) + e + x
-        x = reduce(x, q, centered=True)
+    # print(temp)
+    const = reduce(np.polymul(h, s), q, centered=True)
+    const = const + e
+    const = reduce(np.polymul(h, s), q, centered=True)
+    # print("const, ", str(len(const)))
 
-    print(Gamma)
+    Gamma = []
 
-    return f_prime, g, f_inv, h, f
+    # print(const)
+    for x in temp:
+        Gamma.append(reduce(x+const, q, centered=True))
+
+    # print(len(Gamma))
+    # print(Lwq)
+
+    return h, f, Gamma
+
+
+# LHE_ParamsGen()
+# print(LHE_KeyGen())
+
 
 def LHE_Encrypt(h, msg):
     # Same as Basic Encrypt
@@ -246,7 +267,7 @@ def LHE_Encrypt(h, msg):
     s = reduce(ChiKey(n), q, centered=True) 
 
 
-    print("e = ", e)
+    # print("e = ", e)
     # print("s = ", s)
 
     delta = math.floor(q/t)
@@ -262,6 +283,10 @@ def LHE_Decrypt(f, c):
     global q
     global t
 
+    # print(len(c))
+    # print(len(f))
+    # print(len(c[0]))
+
     M = reduce(np.polymul(f, c), q, centered=True)
     # print(M)
     M = [round(x*t/q) for x in M]
@@ -276,6 +301,42 @@ def LHE_Addition(c1, c2):
     return reduce(A, q, centered=True)
 
 
+def LHE_KeySwitch(cmult, evk):
+    Dqw = BitDecomp(cmult)
+
+    res = []
+    Lwq = int(np.floor(np.log(q)/np.log(w)))+2
+
+    for i in range(Lwq):
+        temp = np.polymul(Dqw[i], evk[i])
+        temp = reduce(temp, q, centered=True)
+        res.append(temp)
+    
+    return res
+
+
+def LHE_Multiply(c1, c2, evk):
+    global t
+    global q
+
+    const = t/q
+    temp = np.polymul(c1, c2)
+
+    temp = [np.round(x*const) for x in temp]
+
+    cmultbar = reduce(temp, q, centered=True)
+    temp = LHE_KeySwitch(cmultbar, evk)
+
+    val = np.zeros(n)
+
+    for x in temp:
+        val = np.polyadd(val, x)
+    
+    val = reduce(val, q, centered=True)
+
+    # print(val)
+
+    return val
 
 
 
@@ -289,24 +350,32 @@ def LHE_Addition(c1, c2):
 
 
 
-# f_prime, g, f_inv, h, f = LHE_KeyGen()
-# print("Enter two messages (a1, b1) and (a2, b2) to encrypt")
-# s1 = input()
-# s2 = input()
-# msg1 = s1.split()
-# msg2 = s2.split()
-# msg1 = [int(x) for x in msg1]
-# msg2 = [int(x) for x in msg2]
-# print("The messages entered are:")
-# print("message1: ", msg1)
-# print("message2: ", msg2)
 
-# c1 = LHE_Encrypt(h, reduce(msg1, t, centered=True))
-# c2 = LHE_Encrypt(h, reduce(msg2, t, centered=True))
 
-# final_msg = LHE_Decrypt(f, LHE_Addition(c1, c2))
-# print("First cipher text is: ", c1)
-# print("Second cipher text is: ", c2)
-# print("Homomorphic Addition is ", reduce(final_msg, t))
+
+LHE_ParamsGen()
+h, f, Gamma = LHE_KeyGen()
+print("Enter two messages (a1, b1) and (a2, b2) to encrypt")
+s1 = input()
+s2 = input()
+msg1 = s1.split()
+msg2 = s2.split()
+msg1 = [int(x) for x in msg1]
+msg2 = [int(x) for x in msg2]
+print("The messages entered are:")
+print("message1: ", msg1)
+print("message2: ", msg2)
+
+c1 = LHE_Encrypt(h, reduce(msg1, t, centered=True))
+c2 = LHE_Encrypt(h, reduce(msg2, t, centered=True))
+
+final_msg = LHE_Decrypt(f, LHE_Addition(c1, c2))
+print("First cipher text is: ", c1)
+print("Second cipher text is: ", c2)
+print("Homomorphic Addition is ", reduce(final_msg, t))
+
+final_msg = LHE_Decrypt(f, LHE_Multiply(c1, c2, Gamma))
+final_msg = reduce(final_msg, q, centered=True)
+print("Multiplication is ", reduce(final_msg, t))
 
 
