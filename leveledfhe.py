@@ -158,13 +158,15 @@ def split_to_bits(x, w, Lwq):
         idx-=1
         x = x//w
     
-    print(temp)
+    # print(temp)
+    return temp
 
 # split_to_bits(-1, 2, 6)     
 
 def BitDecomp(x):
     Lwq = int(np.floor(np.log(q)/np.log(w)))+2
     # Lwq = 3
+    # res = np.array(0)
     res = []
     
     for x_coeff in x:
@@ -172,9 +174,11 @@ def BitDecomp(x):
         res.append(temp)
         
 
-    print(res)
+    # print(res)
 
     return res
+
+print(BitDecomp([1, 2]))
 
 def pow_of_2(x):
     #global lwq
@@ -191,8 +195,6 @@ def pow_of_2(x):
             z=z*len(x)
         y.append(z)
     return y
-
-# BitDecomp([1, 2])
 
 def LHE_Encrypt(h, msg):
     # Same as Basic Encrypt
