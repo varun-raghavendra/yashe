@@ -44,7 +44,7 @@ def genProbabilities():
     probabilities = [x / sum for x in probabilities]
 
 def sample(B):
-    # Returns a random sample from -B+1 to B, according to the 
+    # Returns a random sample from -B+1 to B, according to the
     # probability space
     return np.random.choice(np.arange(-1*B+1, B), p=probabilities)
 
@@ -65,20 +65,20 @@ def ChiKey(n, B_key = B):
     return poly
 
 def inverse(f):
-    # Fast inverse method 
+    # Fast inverse method
     global phid
     global q
     p = ZZ.map(f)
     mod = ZZ.map(phid)
     s, t, g = gf_gcdex(p, mod, q, ZZ)
-    if len(g) == 1 and g[0] == 1: 
+    if len(g) == 1 and g[0] == 1:
         return s
     else:
         return [-1]
 
 def ParamsGen(Lambda=987654321):
     """
-    Given security parameter lambda, initialise d, q, t, ChiKey, 
+    Given security parameter lambda, initialise d, q, t, ChiKey,
     ChiErr, and w, where w is an integer > 1
     """
     d = 16
@@ -102,7 +102,25 @@ def BitDecomp(x):
         x_bar = reduce(x_bar, q, centered=True, divide=False)
         print(type(x_bar))
         res.append(x_bar)
-    
+
     print(res)
+
+
+def pow_of_2(x):
+    #global lwq
+    global w
+    lwq =  math.floor(math.log(q) / math.log(w)) + 2
+
+    z = x
+    y = []
+    for i in range(lwq):
+        z = [j*(w**i) for j in x]
+        #print(i,z,reduce(z))
+        z=reduce(z)
+        if z==[0.0]:
+            z=z*len(x)
+        y.append(z)
+    return y
+
 
 BitDecomp([1, 2])
