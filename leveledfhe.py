@@ -7,7 +7,7 @@ import itertools
 
 phid = [1, 0, 0, 0, 0, 0, 0, 0, 1]
 d = 16
-q = 2147483647
+q = 68720001023 
 t = 50
 w = 4
 n = 9
@@ -140,7 +140,7 @@ def split_to_bits(x, w, Lwq):
 # split_to_bits(-1, 2, 6)     
 
 def BitDecomp(x):
-    Lwq = int(np.floor(np.log(q)/np.log(w)))+2
+    Lwq = int(np.floor(math.log(q)/np.log(w)))+2
     # Lwq = 3
     # res = np.array(0)
     res = []
@@ -225,7 +225,7 @@ def LHE_KeyGen():
     global d
  
     f_prime, g, f_inv, h, f = Basic_KeyGen(d)
-    Lwq = int(np.floor(np.log(q)/np.log(w)))+2
+    Lwq = int(np.floor(math.log(q)/np.log(w)))+2
 
     e = []
     s = []
@@ -346,7 +346,7 @@ def LHE_KeySwitch(cmult, evk):
     Dqw = BitDecomp(cmult)
 
     res = []
-    Lwq = int(np.floor(np.log(q)/np.log(w)))+2
+    Lwq = int(np.floor(math.log(q)/np.log(w)))+2
 
     for i in range(Lwq):
         temp = np.polymul(Dqw[i], evk[i])
@@ -393,7 +393,7 @@ def add_noise(f, c, m):
 
     v = np.polysub(temp, del_m)
 
-    return v
+    return reduce(v, q, True)
 
 def mul_noise(f, cmult, m1, m2):
     delta = np.floor(q/t)
@@ -429,14 +429,16 @@ h, f, Gamma = LHE_KeyGen()
 
 # print("\nf", f)
 
-print("Enter two messages (a1, b1) and (a2, b2) to encrypt")
-s1 = input()
-s2 = input()
-msg1 = s1.split()
-msg2 = s2.split()
-msg1 = [int(x) for x in msg1]
-msg2 = [int(x) for x in msg2]
+# print("Enter two messages (a1, b1) and (a2, b2) to encrypt")
+# s1 = input()
+# s2 = input()
+# msg1 = s1.split()
+# msg2 = s2.split()
+# msg1 = [int(x) for x in msg1]
+# msg2 = [int(x) for x in msg2]
 print("The messages entered are:")
+msg1 = [1, 2]
+msg2 = [3, 4]
 print("message1: ", msg1)
 print("message2: ", msg2)
 
@@ -454,9 +456,20 @@ c1c2, cmultbar = LHE_Multiply(c1, c2, Gamma)
 # print(norm(add_noise(f, c1, msg1)))
 print("Addition 1 noise", norm(add_noise(f, c1, msg1)))
 print("Addition 2 noise", norm(add_noise(f, c2, msg2)))
+
+delta = np.floor(q/t)
+red = reduce([q], t, False)
+
+print("Addition max allowed noise: ", (delta-red)/2)
+
+V = max(norm(add_noise(f, c1, msg1)), norm(add_noise(f, c2, msg2)))
+
+const = n*t*(3+n*t*B)*V+0.5*n*n*t*t*B*(B+t)
+
+
 print("Multiplication noise", norm(mul_noise(f, cmultbar, msg1, msg2)))
 
-
+print("Multiplication max allowed noise: ", const)
 
 
 final_msg = LHE_Decrypt(f, c1c2)
