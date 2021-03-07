@@ -7,7 +7,7 @@ import itertools
 
 phid = [1, 0, 0, 0, 0, 0, 0, 0, 1]
 d = 16
-q = 1040101
+q = 2147483647
 t = 50
 w = 4
 n = 9
@@ -234,7 +234,12 @@ def LHE_KeyGen():
     for i in range(Lwq):
         s.append(reduce(ChiErr(n), q, centered=True))
 
-
+    # f = [-100.0, 0.0, 0.0, -50.0, 50.0, 0.0, 50.0, 1.0]
+    # h = [264868.0, -88752.0, -245882.0, -405133.0, 216099.0, -500317.0, -422207.0, -19511.0]
+    #
+    # e = [[2.0, 1.0, 1.0, 1.0, 1.0, -1.0, 2.0, 1.0], [1.0, 0.0, 0.0, 1.0, 0.0, 0.0, -1.0, -1.0], [1.0, 0.0, 0.0, 0.0, 1.0, -2.0, 0.0, 1.0], [2.0, -1.0, -1.0, 1.0, 0.0, 0.0, 0.0, -1.0], [2.0, 1.0, -1.0, 1.0, 0.0, 1.0, -1.0, -2.0], [1.0, 0.0, 1.0, 0.0, 1.0, 0.0, -4.0], [1.0, 1.0, 0.0, 1.0, 1.0, 0.0], [-2.0, -2.0, 2.0, -2.0, 1.0, 0.0, 1.0, -1.0], [2.0, 1.0, -1.0, 3.0, -1.0, 0.0, 1.0, -1.0], [-1.0, -1.0, 1.0, 1.0, 0.0, -1.0, 0.0, -1.0], [1.0, 1.0, -2.0, 0.0, -1.0, 1.0, 0.0, -1.0]]
+    #
+    # s = [[1.0, -1.0, -1.0, 1.0, 0.0, 1.0, -1.0, -2.0], [-2.0, 1.0, 0.0, -2.0, 0.0, 1.0, 0.0, 2.0], [2.0, -1.0, 0.0, -3.0], [-2.0, -2.0, -1.0, 1.0, -1.0, 1.0, 0.0, 2.0], [-1.0, 1.0, 2.0, 0.0, 0.0, 0.0, 2.0, 1.0], [-2.0, 0.0, 1.0, 1.0, -1.0, 1.0, -1.0, 3.0], [-2.0, -2.0, -1.0, 1.0, -3.0, 0.0, -2.0], [-1.0, 0.0, 1.0, 0.0, -1.0, -1.0, 1.0], [1.0, -1.0, 1.0, -1.0, -1.0, -1.0, -2.0], [-3.0, 0.0, -1.0, 1.0, 0.0, -3.0, 0.0], [2.0, -2.0, 0.0, 0.0, 0.0, 0.0]]
     temp = pow_of_2(f)
 
     # print("size of ")
@@ -264,6 +269,11 @@ def LHE_KeyGen():
 
     # print(len(Gamma))
     # print(Lwq)
+    # print('f : ',f)
+    # print('h : ',h)
+    # print('e : ',e)
+    # print('s : ',s)
+    # print('Gamma : ',Gamma)
 
     return h, f, Gamma
 
@@ -281,9 +291,11 @@ def LHE_Encrypt(h, msg):
     e = reduce(ChiErr(n), q, centered=True)
     s = reduce(ChiErr(n), q, centered=True)
 
+    # e =  [-2.0, -2.0, -1.0, 2.0, 0.0, 0.0, -1.0, -4.0]
+    # s =  [-1.0, -2.0, -2.0, -1.0, 1.0, 0.0, 0.0, 0.0]
 
-    # print("e = ", e)
-    # print("s = ", s)
+    #print("e = ", e)
+    #print("s = ", s)
 
     delta = math.floor(q/t)
     c = [delta*x for x in msg]
@@ -301,13 +313,13 @@ def LHE_Decrypt(f, c):
     # print(len(c))
     # print(len(f))
     # print(len(c[0]))
-    print('c = ',c)
+    #print('c = ',c)
 
     M = reduce(np.polymul(f, c), q, centered=True)
-    print('M = ',M)
+    #print('M = ',M)
 
     M = [round(x*t/q) for x in M]
-    print('M = ',M)
+    #print('M = ',M)
 
     return reduce(M, t, centered=True)
 
@@ -320,6 +332,7 @@ def LHE_Addition(c1, c2):
 
 
 def LHE_KeySwitch(cmult, evk):
+    global n
     Dqw = BitDecomp(cmult)
 
     res = []
@@ -330,10 +343,14 @@ def LHE_KeySwitch(cmult, evk):
         temp = reduce(temp, q, centered=True)
         res.append(temp)
 
-    # temp = np.polymul(Dqw[i], evk[i])
-    # res = reduce(temp, q, centered=True)
+    sum = np.zeros(n)
+    for i in range(Lwq):
+        sum = np.polyadd(sum,res[i])
 
-    return res
+    # temp = np.polymul(Dqw[i], evk[i])
+    sum = reduce(sum, q, centered=True)
+
+    return sum
 
 
 def LHE_Multiply(c1, c2, evk):
@@ -346,26 +363,50 @@ def LHE_Multiply(c1, c2, evk):
     temp = [np.round(x*const) for x in temp]
 
     cmultbar = reduce(temp, q, centered=True)
+    print('cmultbar : ',cmultbar)
     temp = LHE_KeySwitch(cmultbar, evk)
 
-    val = np.zeros(n)
+    #val = np.zeros(n)
 
-    for x in temp:
-        val = np.polyadd(val, x)
+    # for x in temp:
+    #     val = np.polyadd(val, x)
 
+    val = temp
     val = reduce(val, q, centered=True)
 
     # print(val)
 
-    return val
+    return val, cmultbar
 
 
 
 
+def add_noise(f, c, m):
+    delta = np.floor(q/t)
+    temp = np.polymul(f,c)
+
+    del_m = [delta*x for x  in m]
+
+    v = np.polysub(temp, del_m)
+
+    return v
+
+def mul_noise(f, cmult, m1, m2):
+    delta = np.floor(q/t)
+    temp = np.polymul(f,f)
+    temp = np.polymul(temp, cmult)
+    m1m2 = reduce(np.polymul(m1, m2), t, True)
+
+
+    del_m = [delta*x for x  in m1m2]
+
+    noise = np.polysub(temp, del_m)
+    return noise
 
 
 
-
+def norm(c):
+    return np.max(np.abs(c))
 
 
 
@@ -404,10 +445,33 @@ print("First cipher text is: ", c1)
 print("Second cipher text is: ", c2)
 print("Homomorphic Addition is ", reduce(final_msg, t))
 
-final_msg = LHE_Decrypt(f, LHE_Multiply(c1, c2, Gamma))
-print("Final msg is ", final_msg)
+# final_msg = LHE_Decrypt(f, LHE_Multiply(c1, c2, Gamma))
+# print("Final msg is ", final_msg)
+#
+# final_msg = reduce(final_msg, q, centered=True)
+#
+# print("Final msg is ", final_msg)
+# print("Multiplication is ", reduce(final_msg, t))
+#
+delta = math.floor(q/t)
+# del_msg1 = reduce(msg1,t)
+# del_msg1 = [delta*x for x in del_msg1]
+# print("inherent noise in encryption is:")
+# print(reduce(np.polysub(np.polymul(f, c1), del_msg1),q),)
+#
+# del_msg2 = reduce(msg2,t)
+# del_msg2 = [delta*x for x in del_msg2]
+# print("inherent noise in encryption is:")
+# print(reduce(np.polysub(np.polymul(f, c2), del_msg2),q))
+print('del/2 : ',delta/2)
 
-final_msg = reduce(final_msg, q, centered=True)
+c1c2, cmultbar = LHE_Multiply(c1, c2, Gamma)
 
-print("Final msg is ", final_msg)
+print("Addition 1 noise", norm(add_noise(f, c1, msg1)))
+print("Addition 2 noise", norm(add_noise(f, c2, msg2)))
+print("Multiplication noise", norm(mul_noise(f, cmultbar, msg1, msg2)))
+
+final_msg = LHE_Decrypt(f, c1c2)
+# final_msg = reduce(final_msg, q, centered=True)
 print("Multiplication is ", reduce(final_msg, t))
+print("Expected : ", reduce(np.polymul(msg1,msg2),t))
