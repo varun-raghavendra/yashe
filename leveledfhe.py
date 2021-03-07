@@ -7,7 +7,7 @@ import itertools
 
 phid = [1, 0, 0, 0, 0, 0, 0, 0, 1]
 d = 16
-q = 1040101
+q = 2147483647
 t = 50
 w = 4
 n = 9
@@ -408,7 +408,8 @@ def mul_noise(f, cmult, m1, m2):
     return noise
 
 
-
+def norm(c):
+    return np.max(np.abs(c))
 
 
 
@@ -424,9 +425,9 @@ def mul_noise(f, cmult, m1, m2):
 LHE_ParamsGen()
 h, f, Gamma = LHE_KeyGen()
 
-print("Gamma", Gamma)
+# print("Gamma", Gamma)
 
-print("\nf", f)
+# print("\nf", f)
 
 print("Enter two messages (a1, b1) and (a2, b2) to encrypt")
 s1 = input()
@@ -445,14 +446,18 @@ c2 = LHE_Encrypt(h, reduce(msg2, t, centered=True))
 final_msg = LHE_Decrypt(f, LHE_Addition(c1, c2))
 print("First cipher text is: ", c1)
 print("Second cipher text is: ", c2)
+print("Del/2", np.floor(q/t)/2)
 print("Homomorphic Addition is ", reduce(final_msg, t))
 
 
 c1c2, cmultbar = LHE_Multiply(c1, c2, Gamma)
+# print(norm(add_noise(f, c1, msg1)))
+print("Addition 1 noise", norm(add_noise(f, c1, msg1)))
+print("Addition 2 noise", norm(add_noise(f, c2, msg2)))
+print("Multiplication noise", norm(mul_noise(f, cmultbar, msg1, msg2)))
 
-print("Addition 1 noise", add_noise(f, c1, msg1))
-print("Addition 2 noise", add_noise(f, c2, msg2))
-print("Multiplication noise", mul_noise(f, cmultbar, msg1, msg2))
+
+
 
 final_msg = LHE_Decrypt(f, c1c2)
 # final_msg = reduce(final_msg, q, centered=True)
