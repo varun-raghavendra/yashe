@@ -235,7 +235,7 @@ f = reduce(f)
 # print(msg)
 
 # c = Encrypt(h, reduce_t(msg))
-# print("Cipher text obtained is")
+# print("Cipherd text obtained is")
 # print(c)
 
 # delta = math.floor(q/t)

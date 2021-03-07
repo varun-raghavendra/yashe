@@ -118,10 +118,8 @@ def Basic_KeyGen(d):
 
 
 def split_to_bits(x, w, Lwq):
-    ans = []
     temp = []
 
-    base = w
     temp = np.zeros(Lwq)
     
     if(x<0):
@@ -166,11 +164,14 @@ def BitDecomp(x):
         temp = res[:, i]
         temp = list(np.squeeze(temp))
         temp = reduce(temp, q, centered=True)
+        # temp = np.asarray(temp)
         # print(temp)
         ans.append(temp)
 
     # Now each vector in ans is an element of R, and has as many coefficients as 
     # we'd expect.
+
+    # ans = np.asarray(ans)
 
     return ans
 
@@ -207,6 +208,7 @@ def LHE_ParamsGen(Lambda=987654321):
     global t
     global B
     global n
+    # global w
 
     genProbabilities()
 
@@ -225,10 +227,31 @@ def LHE_KeyGen():
     f_prime, g, f_inv, h, f = Basic_KeyGen(d)
     Lwq = int(np.floor(np.log(q)/np.log(w)))+2
 
-    e = reduce(ChiErr(Lwq), q, centered=True)
-    s = reduce(ChiKey(Lwq), q, centered=True)
+    e = []
+    s = []
 
-    temp = pow_of_2(f)
+    for i in range(Lwq):
+        e.append(reduce(ChiErr(n), q, centered=True))
+        s.append(reduce(ChiErr(n), q, centered=True))
+
+    # e = np.asarray(e)
+    # s = np.asarray(s)
+
+
+    # print("E's shape", e.shape)
+    # print(e[1])
+    
+
+    # f = [-100.0, 0.0, 0.0, -50.0, 50.0, 0.0, 50.0, 1.0]
+    # h = [264868.0, -88752.0, -245882.0, -405133.0, 216099.0, -500317.0, -422207.0, -19511.0]
+
+    # e = [[2.0, 1.0, 1.0, 1.0, 1.0, -1.0, 2.0, 1.0], [1.0, 0.0, 0.0, 1.0, 0.0, 0.0, -1.0, -1.0], [1.0, 0.0, 0.0, 0.0, 1.0, -2.0, 0.0, 1.0], [2.0, -1.0, -1.0, 1.0, 0.0, 0.0, 0.0, -1.0], [2.0, 1.0, -1.0, 1.0, 0.0, 1.0, -1.0, -2.0], [1.0, 0.0, 1.0, 0.0, 1.0, 0.0, -4.0], [1.0, 1.0, 0.0, 1.0, 1.0, 0.0], [-2.0, -2.0, 2.0, -2.0, 1.0, 0.0, 1.0, -1.0], [2.0, 1.0, -1.0, 3.0, -1.0, 0.0, 1.0, -1.0], [-1.0, -1.0, 1.0, 1.0, 0.0, -1.0, 0.0, -1.0], [1.0, 1.0, -2.0, 0.0, -1.0, 1.0, 0.0, -1.0]]
+
+    # s = [[1.0, -1.0, -1.0, 1.0, 0.0, 1.0, -1.0, -2.0], [-2.0, 1.0, 0.0, -2.0, 0.0, 1.0, 0.0, 2.0], [2.0, -1.0, 0.0, -3.0], [-2.0, -2.0, -1.0, 1.0, -1.0, 1.0, 0.0, 2.0], [-1.0, 1.0, 2.0, 0.0, 0.0, 0.0, 2.0, 1.0], [-2.0, 0.0, 1.0, 1.0, -1.0, 1.0, -1.0, 3.0], [-2.0, -2.0, -1.0, 1.0, -3.0, 0.0, -2.0], [-1.0, 0.0, 1.0, 0.0, -1.0, -1.0, 1.0], [1.0, -1.0, 1.0, -1.0, -1.0, -1.0, -2.0], [-3.0, 0.0, -1.0, 1.0, 0.0, -3.0, 0.0], [2.0, -2.0, 0.0, 0.0, 0.0, 0.0]]
+
+
+
+    pow_f = pow_of_2(f)
 
     # print("size of ")
     # print("s, ", str(len(s)))
@@ -236,19 +259,34 @@ def LHE_KeyGen():
     # print("e, ", str(len(e)))
 
     # print(temp)
-    const = reduce(np.polymul(h, s), q, centered=True)
-    const = const + e
-    const = reduce(np.polymul(h, s), q, centered=True)
+    # const = reduce(np.polymul(h, s), q, centered=True)
+    temp1 = [np.polymul(h, si) for si in s]
+
+    temp1 = np.asarray(temp1)
+
+    temp2 = []
+    for (x, y) in zip(e, temp1):
+        temp2.append(np.polyadd(x,y))
+    
+    const = np.asarray(temp2)
+    # const = reduce(np.polymul(h, s), q, centered=True)
     # print("const, ", str(len(const)))
 
     Gamma = []
 
     # print(const)
-    for x in temp:
-        Gamma.append(reduce(x+const, q, centered=True))
+    # for x in temp:
+    #     Gamma.append(reduce(x+const, q, centered=True))
+
+    for (x, y) in zip(pow_f, const):
+        t = np.polyadd(x, y)
+        t = reduce(t, q, centered=True)
+        Gamma.append(t)
 
     # print(len(Gamma))
     # print(Lwq)
+
+    Gamma = np.asarray(Gamma)
 
     return h, f, Gamma
 
@@ -265,6 +303,9 @@ def LHE_Encrypt(h, msg):
 
     e = reduce(ChiErr(n), q, centered=True)  
     s = reduce(ChiKey(n), q, centered=True) 
+
+    # e =  [-2.0, -2.0, -1.0, 2.0, 0.0, 0.0, -1.0, -4.0]
+    # s =  [-1.0, -2.0, -2.0, -1.0, 1.0, 0.0, 0.0, 0.0]
 
 
     # print("e = ", e)
@@ -311,8 +352,13 @@ def LHE_KeySwitch(cmult, evk):
         temp = np.polymul(Dqw[i], evk[i])
         temp = reduce(temp, q, centered=True)
         res.append(temp)
+
+    for i in range(1, Lwq):
+        res[0] = np.polyadd(res[0], res[i])
     
-    return res
+    # print(res[0])
+
+    return res[0]
 
 
 def LHE_Multiply(c1, c2, evk):
@@ -325,6 +371,7 @@ def LHE_Multiply(c1, c2, evk):
     temp = [np.round(x*const) for x in temp]
 
     cmultbar = reduce(temp, q, centered=True)
+    # print("Cmultbar: ", cmultbar)
     temp = LHE_KeySwitch(cmultbar, evk)
 
     val = np.zeros(n)
@@ -336,8 +383,29 @@ def LHE_Multiply(c1, c2, evk):
 
     # print(val)
 
-    return val
+    return val, cmultbar
 
+def add_noise(f, c, m):
+    delta = np.floor(q/t)
+    temp = np.polymul(f,c)
+
+    del_m = [delta*x for x  in m]
+
+    v = np.polysub(temp, del_m)
+
+    return v
+
+def mul_noise(f, cmult, m1, m2):
+    delta = np.floor(q/t)
+    temp = np.polymul(f,f)
+    temp = np.polymul(temp, cmult)
+    m1m2 = reduce(np.polymul(m1, m2), t, True)
+
+
+    del_m = [delta*x for x  in m1m2]
+
+    noise = np.polysub(temp, del_m)
+    return noise
 
 
 
@@ -355,6 +423,11 @@ def LHE_Multiply(c1, c2, evk):
 
 LHE_ParamsGen()
 h, f, Gamma = LHE_KeyGen()
+
+print("Gamma", Gamma)
+
+print("\nf", f)
+
 print("Enter two messages (a1, b1) and (a2, b2) to encrypt")
 s1 = input()
 s2 = input()
@@ -374,8 +447,15 @@ print("First cipher text is: ", c1)
 print("Second cipher text is: ", c2)
 print("Homomorphic Addition is ", reduce(final_msg, t))
 
-final_msg = LHE_Decrypt(f, LHE_Multiply(c1, c2, Gamma))
-final_msg = reduce(final_msg, q, centered=True)
+
+c1c2, cmultbar = LHE_Multiply(c1, c2, Gamma)
+
+print("Addition 1 noise", add_noise(f, c1, msg1))
+print("Addition 2 noise", add_noise(f, c2, msg2))
+print("Multiplication noise", mul_noise(f, cmultbar, msg1, msg2))
+
+final_msg = LHE_Decrypt(f, c1c2)
+# final_msg = reduce(final_msg, q, centered=True)
 print("Multiplication is ", reduce(final_msg, t))
 
 
