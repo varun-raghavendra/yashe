@@ -14,7 +14,8 @@ n = 9
 probabilities = []
 pi = 3.141592653589793
 exp= 2.718281828459045
-B = 18
+B = 14
+
 
 sigma = np.floor(B/6)
 
@@ -469,8 +470,8 @@ c1c2, cmultbar = LHE_Multiply(c1, c2, Gamma)
 
 delta = np.floor(q/t)
 red = reduce([q], t, False)
-V = max(norm(add_noise(f, c1, msg1)), norm(add_noise(f, c2, msg2)))
-
+# V = max(norm(add_noise(f, c1, msg1)), norm(add_noise(f, c2, msg2)))
+V = delta/2-1
 const = n*t*(3+n*t*B)*V+0.5*n*n*t*t*B*(B+t)
 
 print("Addition max allowed noise: ", (delta-red)/2)
