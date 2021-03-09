@@ -5,19 +5,22 @@ import numpy as np
 import math
 import itertools
 
-phid = [1, 0, 0, 0, 0, 0, 0, 0, 1]
-d = 16
-q = 2147483647
-t = 50
-w = 4
-n = 9
-probabilities = []
-pi = 3.141592653589793
-exp= 2.718281828459045
-B = 14
+phid = [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]
+# phid = [1, 0, 0, 0, 0, 0, 0, 0, 0, 1]
+d = 32
+# d = 16
+q = 67280421310721
+t = 5000000
+w = 64
+n = 16
+# n = 8
+key_prob = []
+err_prob = []
+Berr = 48
+Bkey = 1
 
-
-sigma = np.floor(B/6)
+sigma_err = Berr/6
+sigma_key = Bkey/6
 
 def reduce(p, mod, centered=True, divide=True):
     # Put the given polynomial in the range [-mod/2, mod/2) if centered,
@@ -39,33 +42,45 @@ def reduce(p, mod, centered=True, divide=True):
 
 def genProbabilities():
     # Make probability space assuming B is our upper limit for Chi
-    global probabilities
-    global B
+    global key_prob
+    global err_prob
+    global Berr
+    global Bkey
     sum = 0
-    for i in range (-1*B+1, B):
-        x = np.e**(-(np.pi)*(i**2)/sigma**2)
-        probabilities.append(x)
+    for i in range (-1*Bkey, Bkey+1):
+        x = np.e**(-(np.pi)*(i**2)/sigma_key**2)
+        key_prob.append(x)
         sum += x
-    probabilities = [x / sum for x in probabilities]
+    key_prob = [x / sum for x in key_prob]
 
-def sample(B):
+    sum = 0
+    for i in range (-1*Berr, Berr+1):
+        x = np.e**(-(np.pi)*(i**2)/sigma_err**2)
+        err_prob.append(x)
+        sum += x
+    err_prob = [x / sum for x in err_prob]
+
+def sample(B, prob):
     # Returns a random sample from -B+1 to B, according to the
     # probability space
-    return np.random.choice(np.arange(-1*B+1, B), p=probabilities)
+    return np.random.choice(np.arange(-1*B, B+1), p=prob)
 
-def ChiErr(n, B_err = B):
+def ChiErr(n):
     # Makes a small coefficient error polynomial from the Chi function
+    global Berr
+    global err_prob
     poly = []
     for i in range (0, n):
-        ele = sample(B_err)
+        ele = sample(Berr, err_prob)
         poly.append(ele)
     return poly
 
-def ChiKey(n, B_key = B):
+def ChiKey(n):
     # Makes a small coefficient key polynomial from the Chi function
+    global Bkey
     poly = []
     for i in range (0, n):
-        ele = sample(B_key)
+        ele = sample(Bkey, key_prob)
         poly.append(ele)
     return poly
 
@@ -86,10 +101,9 @@ def Basic_KeyGen(d):
     global phid
     global q
     global t
-    global B
 
-    f_prime = ChiErr(d)
-    g = ChiErr(d)
+    f_prime = ChiKey(d)
+    g = ChiKey(d)
     f = [x*t for x in f_prime]
     f[-1] += 1
     reduce(f, q, centered=True)
@@ -119,10 +133,8 @@ def Basic_KeyGen(d):
 
 
 def split_to_bits(x, w, Lwq):
-    ans = []
     temp = []
 
-    base = w
     temp = np.zeros(Lwq)
 
     if(x<0):
@@ -206,16 +218,18 @@ def LHE_ParamsGen(Lambda=987654321):
     global d
     global q
     global t
-    global B
+    global Berr
+    global Bkey
     global n
+    global key_prob
 
     genProbabilities()
-
+    print("Size of distributions\nChiKey ", len(key_prob))
+    print("ChiErr ", len(err_prob))
     # chi_key = ChiKey(n)
     # chi_err = ChiErr(n)
 
-    d = 16
-    w = sample(B)
+    w = sample(Bkey, key_prob)
 
     return d, q, t
 
@@ -391,11 +405,11 @@ def add_noise(f, c, m):
     v = np.polysub(temp, del_m)
 
     return v
-
+ 
 def mul_noise(f, cmult, m1, m2):
     delta = np.floor(q/t)
-    temp = np.polymul(f,f)
-    temp = np.polymul(temp, cmult)
+    # temp = np.polymul(f,f)
+    temp = np.polymul(f, cmult)
     m1m2 = reduce(np.polymul(m1, m2), t, True)
 
 
@@ -464,24 +478,26 @@ delta = math.floor(q/t)
 # del_msg2 = [delta*x for x in del_msg2]
 # print("inherent noise in encryption is:")
 # print(reduce(np.polysub(np.polymul(f, c2), del_msg2),q))
-print('del/2 : ',delta/2)
+# print('del/2 : ',delta/2)
 
 c1c2, cmultbar = LHE_Multiply(c1, c2, Gamma)
 
 delta = np.floor(q/t)
 red = reduce([q], t, False)
 # V = max(norm(add_noise(f, c1, msg1)), norm(add_noise(f, c2, msg2)))
-V = delta/2-1
-const = n*t*(3+n*t*B)*V+0.5*n*n*t*t*B*(B+t)
+# V = delta/2-1
+Lwq = int(np.floor(np.log(q)/np.log(w)))+2
+const = n*t*(3+n*t*Bkey)*V+0.5*n*n*t*t*Bkey*(Bkey+t)+n*n*t*Lwq*w*Berr*Bkey
 
 print("Addition max allowed noise: ", (delta-red)/2)
 
 print("Addition 1 noise", norm(add_noise(f, c1, msg1)))
 print("Addition 2 noise", norm(add_noise(f, c2, msg2)))
-print("Multiplication noise", norm(mul_noise(f, cmultbar, msg1, msg2)))
+mulnoise = norm(mul_noise(f, cmultbar, msg1, msg2))
+print("Multiplication noise", mulnoise)
 print("Multiplication max allowed noise: ", const)
 
-
+print("Noise margin: ", const-mulnoise)
 
 
 
