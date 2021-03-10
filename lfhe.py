@@ -5,14 +5,19 @@ import numpy as np
 import math
 import itertools
 
-phid = [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]
+phid = np.zeros(4097)
+
+phid[0]=1
+phid[-1]=1
+# print(phid)
+# print(len(phid))
 # phid = [1, 0, 0, 0, 0, 0, 0, 0, 0, 1]
-d = 32
+d = 8192
 # d = 16
-q = 67280421310721
-t = 5000000
-w = 64
-n = 16
+q = math.pow(2, 126)+7
+t = 256
+w = math.pow(2, 32)
+n = 4096
 # n = 8
 key_prob = []
 err_prob = []
@@ -115,7 +120,9 @@ def Basic_KeyGen(d):
     while True:
         try:
             X = (inverse(f))
+            
         except:
+            print("Tried but no")
             f_prime = ChiErr(d)
             f = [x*t for x in f_prime]
             f[-1] += 1
