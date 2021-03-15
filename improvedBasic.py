@@ -179,7 +179,7 @@ def KeyGen(d):
     g = ChiErr(d)
     f = [x*t for x in f_prime]
     f[-1] += 1
-    reduce(f,q)
+    f = reduce(f,q)
 
     # print("f_prime = ", f_prime)
     # print("g = ", g)
@@ -192,7 +192,7 @@ def KeyGen(d):
             f_prime = ChiErr(d)
             f = [x*t for x in f_prime]
             f[-1] += 1
-            reduce(f,q)
+            f = reduce(f,q)
             continue
         f_inv = [int(x) for x in X]
         if f_inv != [-1]:
