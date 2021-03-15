@@ -111,7 +111,7 @@ def Basic_KeyGen(d):
     g = ChiKey(d)
     f = [x*t for x in f_prime]
     f[-1] += 1
-    reduce(f, q, centered=True)
+    f = reduce(f, q, centered=True)
 
     # print("f_prime = ", f_prime)
     # print("g = ", g)
@@ -120,13 +120,13 @@ def Basic_KeyGen(d):
     while True:
         try:
             X = (inverse(f))
-            
+
         except:
-            print("Tried but no")
+            #print("Tried but no")
             f_prime = ChiErr(d)
             f = [x*t for x in f_prime]
             f[-1] += 1
-            reduce(f, q, centered=True)
+            f = reduce(f, q, centered=True)
             continue
         f_inv = [int(x) for x in X]
         if f_inv != [-1]:
@@ -385,7 +385,7 @@ def LHE_Multiply(c1, c2, evk):
     temp = [np.round(x*const) for x in temp]
 
     cmultbar = reduce(temp, q, centered=True)
-    print('cmultbar : ',cmultbar)
+    #print('cmultbar : ',cmultbar)
     temp = LHE_KeySwitch(cmultbar, evk)
 
     #val = np.zeros(n)
@@ -412,7 +412,7 @@ def add_noise(f, c, m):
     v = np.polysub(temp, del_m)
 
     return v
- 
+
 def mul_noise(f, cmult, m1, m2):
     delta = np.floor(q/t)
     # temp = np.polymul(f,f)
@@ -461,7 +461,7 @@ c1 = LHE_Encrypt(h, reduce(msg1, t, centered=True))
 c2 = LHE_Encrypt(h, reduce(msg2, t, centered=True))
 
 final_msg = LHE_Decrypt(f, LHE_Addition(c1, c2))
-print("Final msg is ", final_msg)
+#print("Final msg is ", final_msg)
 
 print("First cipher text is: ", c1)
 print("Second cipher text is: ", c2)
@@ -491,7 +491,7 @@ c1c2, cmultbar = LHE_Multiply(c1, c2, Gamma)
 
 delta = np.floor(q/t)
 red = reduce([q], t, False)
-# V = max(norm(add_noise(f, c1, msg1)), norm(add_noise(f, c2, msg2)))
+V = min(max(norm(add_noise(f, c1, msg1)), norm(add_noise(f, c2, msg2))), delta/2 - 1)
 # V = delta/2-1
 Lwq = int(np.floor(np.log(q)/np.log(w)))+2
 const = n*t*(3+n*t*Bkey)*V+0.5*n*n*t*t*Bkey*(Bkey+t)+n*n*t*Lwq*w*Berr*Bkey
