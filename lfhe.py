@@ -446,69 +446,151 @@ h, f, Gamma = LHE_KeyGen()
 # print('q = ',q)
 # print('t = ',t)
 
-print("Enter two messages (a1, b1) and (a2, b2) to encrypt")
-s1 = input()
-s2 = input()
-msg1 = s1.split()
-msg2 = s2.split()
-msg1 = [int(x) for x in msg1]
-msg2 = [int(x) for x in msg2]
-print("The messages entered are:")
-print("message1: ", msg1)
-print("message2: ", msg2)
+# print("Enter two messages (a1, b1) and (a2, b2) to encrypt")
+# s1 = input()
+# s2 = input()
+# msg1 = s1.split()
+# msg2 = s2.split()
+# msg1 = [int(x) for x in msg1]
+# msg2 = [int(x) for x in msg2]
+# print("The messages entered are:")
+# print("message1: ", msg1)
+# print("message2: ", msg2)
 
-c1 = LHE_Encrypt(h, reduce(msg1, t, centered=True))
-c2 = LHE_Encrypt(h, reduce(msg2, t, centered=True))
+# c1 = LHE_Encrypt(h, reduce(msg1, t, centered=True))
+# c2 = LHE_Encrypt(h, reduce(msg2, t, centered=True))
 
-final_msg = LHE_Decrypt(f, LHE_Addition(c1, c2))
-#print("Final msg is ", final_msg)
+# final_msg = LHE_Decrypt(f, LHE_Addition(c1, c2))
+# #print("Final msg is ", final_msg)
 
-print("First cipher text is: ", c1)
-print("Second cipher text is: ", c2)
-print("Homomorphic Addition is ", reduce(final_msg, t))
+# print("First cipher text is: ", c1)
+# print("Second cipher text is: ", c2)
+# print("Homomorphic Addition is ", reduce(final_msg, t))
 
-# final_msg = LHE_Decrypt(f, LHE_Multiply(c1, c2, Gamma))
-# print("Final msg is ", final_msg)
-#
-# final_msg = reduce(final_msg, q, centered=True)
-#
-# print("Final msg is ", final_msg)
+# # final_msg = LHE_Decrypt(f, LHE_Multiply(c1, c2, Gamma))
+# # print("Final msg is ", final_msg)
+# #
+# # final_msg = reduce(final_msg, q, centered=True)
+# #
+# # print("Final msg is ", final_msg)
+# # print("Multiplication is ", reduce(final_msg, t))
+# #
+# delta = math.floor(q/t)
+# # del_msg1 = reduce(msg1,t)
+# # del_msg1 = [delta*x for x in del_msg1]
+# # print("inherent noise in encryption is:")
+# # print(reduce(np.polysub(np.polymul(f, c1), del_msg1),q),)
+# #
+# # del_msg2 = reduce(msg2,t)
+# # del_msg2 = [delta*x for x in del_msg2]
+# # print("inherent noise in encryption is:")
+# # print(reduce(np.polysub(np.polymul(f, c2), del_msg2),q))
+# # print('del/2 : ',delta/2)
+
+# c1c2, cmultbar = LHE_Multiply(c1, c2, Gamma)
+
+# delta = np.floor(q/t)
+# red = reduce([q], t, False)
+# V = min(max(norm(add_noise(f, c1, msg1)), norm(add_noise(f, c2, msg2))), delta/2 - 1)
+# # V = delta/2-1
+# Lwq = int(np.floor(np.log(q)/np.log(w)))+2
+# const = n*t*(3+n*t*Bkey)*V+0.5*n*n*t*t*Bkey*(Bkey+t)+n*n*t*Lwq*w*Berr*Bkey
+
+# print("Addition max allowed noise: ", (delta-red)/2)
+
+# print("Addition 1 noise", norm(add_noise(f, c1, msg1)))
+# print("Addition 2 noise", norm(add_noise(f, c2, msg2)))
+# mulnoise = norm(mul_noise(f, cmultbar, msg1, msg2))
+# print("Multiplication noise", mulnoise)
+# print("Multiplication max allowed noise: ", const)
+
+# print("Noise margin: ", const-mulnoise)
+
+
+
+# final_msg = LHE_Decrypt(f, c1c2)
+# # final_msg = reduce(final_msg, q, centered=True)
 # print("Multiplication is ", reduce(final_msg, t))
-#
-delta = math.floor(q/t)
-# del_msg1 = reduce(msg1,t)
-# del_msg1 = [delta*x for x in del_msg1]
-# print("inherent noise in encryption is:")
-# print(reduce(np.polysub(np.polymul(f, c1), del_msg1),q),)
-#
-# del_msg2 = reduce(msg2,t)
-# del_msg2 = [delta*x for x in del_msg2]
-# print("inherent noise in encryption is:")
-# print(reduce(np.polysub(np.polymul(f, c2), del_msg2),q))
-# print('del/2 : ',delta/2)
-
-c1c2, cmultbar = LHE_Multiply(c1, c2, Gamma)
-
-delta = np.floor(q/t)
-red = reduce([q], t, False)
-V = min(max(norm(add_noise(f, c1, msg1)), norm(add_noise(f, c2, msg2))), delta/2 - 1)
-# V = delta/2-1
-Lwq = int(np.floor(np.log(q)/np.log(w)))+2
-const = n*t*(3+n*t*Bkey)*V+0.5*n*n*t*t*Bkey*(Bkey+t)+n*n*t*Lwq*w*Berr*Bkey
-
-print("Addition max allowed noise: ", (delta-red)/2)
-
-print("Addition 1 noise", norm(add_noise(f, c1, msg1)))
-print("Addition 2 noise", norm(add_noise(f, c2, msg2)))
-mulnoise = norm(mul_noise(f, cmultbar, msg1, msg2))
-print("Multiplication noise", mulnoise)
-print("Multiplication max allowed noise: ", const)
-
-print("Noise margin: ", const-mulnoise)
+# print("Expected : ", reduce(np.polymul(msg1,msg2),t))
 
 
+def demo():
 
-final_msg = LHE_Decrypt(f, c1c2)
-# final_msg = reduce(final_msg, q, centered=True)
-print("Multiplication is ", reduce(final_msg, t))
-print("Expected : ", reduce(np.polymul(msg1,msg2),t))
+    choice = None
+    c1 = None
+    c2 = None
+    m1 = None
+    m2 = None
+    delta = np.floor(q/t)
+    red = reduce([q], t, False)
+    
+    while(1):
+        while(choice==None):
+            print("1. Take input")
+            print("2. perform addition and print results")
+            print("3. Perform multiplication")
+            choice = int(input("Enter a choice: "))
+        
+        if(choice==1):
+            print("Enter the plaintexts m1 and m2")
+            s1 = input()
+            s2 = input()
+            m1 = s1.split()
+            m2 = s2.split()
+            m1 = [int(x) for x in m1]
+            m2 = [int(x) for x in m2]
+            print("The messages entered are:")
+            print("message1: ", m1)
+            print("message2: ", m2)
+            choice=None
+        elif(choice==2):
+            if(m1==None or m2==None):
+                continue
+
+
+            c1 = LHE_Encrypt(h, reduce(m1, t, centered=True))
+            c2 = LHE_Encrypt(h, reduce(m2, t, centered=True))
+
+            final_msg = LHE_Decrypt(f, LHE_Addition(c1, c2))
+
+            print("First cipher text is: ", c1)
+            print("Second cipher text is: ", c2)
+            print("Homomorphic Addition is ", reduce(final_msg, t))
+            print("Expected result is ", reduce(np.polyadd(m1, m2), t))
+            print("Addition max allowed noise: ", (delta-red)/2)
+
+            print("Addition 1 noise", norm(add_noise(f, c1, m1)))
+            print("Addition 2 noise", norm(add_noise(f, c2, m2)))
+            choice=None
+
+
+        elif(choice==3):
+            if(m1==None or m2==None):
+                continue
+            
+            c1 = LHE_Encrypt(h, reduce(m1, t, centered=True))
+            c2 = LHE_Encrypt(h, reduce(m2, t, centered=True))
+
+            V = min(max(norm(add_noise(f, c1, m1)), norm(add_noise(f, c2, m2))), delta/2 - 1)
+    
+            Lwq = int(np.floor(np.log(q)/np.log(w)))+2
+            const = n*t*(3+n*t*Bkey)*V+0.5*n*n*t*t*Bkey*(Bkey+t)+n*n*t*Lwq*w*Berr*Bkey
+
+            c1c2, cmultbar = LHE_Multiply(c1, c2, Gamma)
+            final_msg = LHE_Decrypt(f, c1c2)
+            final_msg = reduce(final_msg, t, centered=True)
+            print("Multiplication is ", reduce(final_msg, t))
+            print("Expected : ", reduce(np.polymul(m1,m2),t))
+
+            mulnoise = norm(mul_noise(f, cmultbar, m1, m2))
+            print("Multiplication noise", mulnoise)
+            print("Multiplication max allowed noise: ", const)
+            choice=None
+        
+        else:
+            break
+    
+    print("END OF DEMO")
+
+demo()
+
