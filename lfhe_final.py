@@ -610,25 +610,29 @@ def demo():
             iterator = 2
 
             while(comparison.all()):
-                print('Enter next message :')
-                s3 = input()
-                m3 = s3.split()
-                m3 = [int(x) for x in m3]
-                c3 = LHE_Encrypt(h, reduce(m3, t, centered=True))
-                ccc, cimultbar = LHE_Multiply(cc_prev, c3, Gamma)
-                new_final = LHE_Decrypt(f, ccc)
-                new_final = reduce(new_final, t, centered=True)
-                print('Multiplication in level',iterator,  'is ', reduce(new_final, t))
-                print('Expected : ',reduce(np.polymul(m3, old_final), t))
-                diff = np.polysub(reduce(new_final, t), reduce(np.polymul(m3, old_final), t))
-                print('Difference : ', diff)
-                print('Multiplication noise in level',iterator,' :', norm(mul_noise(f, cimultbar, m3, old_final)))
-                print("Multiplication max allowed noise: ", const)
+                try:
+                    print('Enter next message :')
+                    s3 = input()
+                    m3 = s3.split()
+                    m3 = [int(x) for x in m3]
+                    c3 = LHE_Encrypt(h, reduce(m3, t, centered=True))
+                    ccc, cimultbar = LHE_Multiply(cc_prev, c3, Gamma)
+                    new_final = LHE_Decrypt(f, ccc)
+                    new_final = reduce(new_final, t, centered=True)
+                    print('Multiplication in level',iterator,  'is ', reduce(new_final, t))
+                    print('Expected : ',reduce(np.polymul(m3, old_final), t))
+                    diff = np.polysub(reduce(new_final, t), reduce(np.polymul(m3, old_final), t))
+                    print('Difference : ', diff)
+                    print('Multiplication noise in level',iterator,' :', norm(mul_noise(f, cimultbar, m3, old_final)))
+                    print("Multiplication max allowed noise: ", const)
 
-                cc_prev=ccc
-                old_final=new_final
-                comparison = diff==[0]
-                iterator += 1
+                    cc_prev=ccc
+                    old_final=new_final
+                    comparison = diff==[0]
+                    iterator += 1
+                except:
+                    print('Exception occured')
+                    break
 
 
             choice=None
