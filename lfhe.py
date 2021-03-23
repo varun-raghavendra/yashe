@@ -586,10 +586,9 @@ def demo():
 
             while(comparison.all()):
                 try:
-                    print('Enter next message :')
-                    s3 = input()
-                    m3 = s3.split()
-                    m3 = [int(x) for x in m3]
+                    print('Trying again :')
+                    length = np.random.randint(20)+1
+                    m3 = np.random.randint(30, size=(length))
                     c3 = LHE_Encrypt(h, reduce(m3, t, centered=True))
                     ccc, cimultbar = LHE_Multiply(cc_prev, c3, Gamma)
                     new_final = LHE_Decrypt(f, ccc)
