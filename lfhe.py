@@ -450,7 +450,7 @@ def demo():
     m2 = None
     delta = np.floor(q/t)
     red = reduce([q], t, False)
-    
+
     while(1):
         while(choice==None):
             print("\n\n****************************")
@@ -459,9 +459,10 @@ def demo():
             print("3. Perform multiplication")
             print("4. Print ciphertexts")
             print("5. Make large random inputs")
+            print("6. Levels of multiplication")
             print("9. Exit")
             choice = int(input("Enter a choice: "))
-        
+
         if(choice==1):
             print("Enter the plaintexts m1 and m2")
             s1 = input()
@@ -487,7 +488,7 @@ def demo():
             print("Expected result is ", expected_msg)
 
             print("\n\n Are they the same?: ", bool(final_msg==expected_msg))
-            
+
             print("Addition max allowed noise: ", (delta-red)/2)
 
             print("Addition 1 noise", norm(add_noise(f, c1, m1)))
@@ -498,11 +499,11 @@ def demo():
         elif(choice==3):
             if(m1==None or m2==None):
                 continue
-            
-            
+
+
 
             V = min(max(norm(add_noise(f, c1, m1)), norm(add_noise(f, c2, m2))), delta/2 - 1)
-    
+
             Lwq = int(np.floor(np.log(q)/np.log(w)))+2
             const = n*t*(3+n*t*Bkey)*V+0.5*n*n*t*t*Bkey*(Bkey+t)+n*n*t*Lwq*w*Berr*Bkey
 
@@ -517,7 +518,7 @@ def demo():
             print("Multiplication noise", mulnoise)
             print("Multiplication max allowed noise: ", const)
             choice=None
-        
+
         elif(choice==4):
             print("First cipher text is: ", c1)
             print("Second cipher text is: ", c2)
@@ -528,7 +529,7 @@ def demo():
             length = np.random.randint(20)+1
             m1 = np.random.randint(30, size=(length))
             m2 = np.random.randint(30, size=(length))
-            
+
             m1 = reduce(m1, t, True)
             m2 = reduce(m2, t, True)
 
@@ -539,14 +540,91 @@ def demo():
             c2 = LHE_Encrypt(h, reduce(m2, t, centered=True))
 
             choice=None
-        
-        
 
-        
+        elif(choice==6):
+            if(m1==None or m2==None):
+                continue
+
+            # print('Enter 3rd message :')
+            # s3 = input()
+            # m3 = s3.split()
+            # m3 = [int(x) for x in m3]
+
+            c1 = LHE_Encrypt(h, reduce(m1, t, centered=True))
+            c2 = LHE_Encrypt(h, reduce(m2, t, centered=True))
+            #c3 = LHE_Encrypt(h, reduce(m3, t, centered=True))
+
+            V = min(max(norm(add_noise(f, c1, m1)), norm(add_noise(f, c2, m2))), delta/2 - 1)
+
+            Lwq = int(np.floor(np.log(q)/np.log(w)))+2
+            const = n*t*(3+n*t*Bkey)*V+0.5*n*n*t*t*Bkey*(Bkey+t)+n*n*t*Lwq*w*Berr*Bkey
+
+            c1c2, cmultbar = LHE_Multiply(c1, c2, Gamma)
+            final_msg = LHE_Decrypt(f, c1c2)
+            final_msg = reduce(final_msg, t, centered=True)
+            print("Multiplication in level 1 is ", reduce(final_msg, t))
+            print("Expected : ", reduce(np.polymul(m1,m2),t))
+            diff = np.polysub(reduce(final_msg, t), reduce(np.polymul(m1, m2), t))
+            print('Difference : ', diff)
+            comparison = diff==[0]
+            #cc3, c3multbar = LHE_Multiply(c1c2, c3, Gamma)
+            #new_final = LHE_Decrypt(f, cc3)
+            #new_final = reduce(new_final, t, centered=True)
+            #print('Multiplication level 3 is ', reduce(new_final, t))
+            #print('Expected : ',reduce(np.polymul(m3, np.polymul(m1, m2)), t))
+
+            mulnoise = norm(mul_noise(f, cmultbar, m1, m2))
+            print("Multiplication noise", mulnoise)
+            #print('Multiplication noise level 2 :', norm(mul_noise(f, c3multbar, m3, final_msg)))
+            print("Multiplication max allowed noise: ", const)
+
+            old_final = final_msg
+            cc_prev = c1c2
+            iterator = 2
+
+            
+
+            while(comparison.all()):
+                try:
+                    print('Enter next message :')
+                    s3 = input()
+                    m3 = s3.split()
+                    m3 = [int(x) for x in m3]
+                    c3 = LHE_Encrypt(h, reduce(m3, t, centered=True))
+                    ccc, cimultbar = LHE_Multiply(cc_prev, c3, Gamma)
+                    new_final = LHE_Decrypt(f, ccc)
+                    new_final = reduce(new_final, t, centered=True)
+                    print('Multiplication in level',iterator,  'is ', reduce(new_final, t))
+                    print('Expected : ',reduce(np.polymul(m3, old_final), t))
+                    diff = np.polysub(reduce(new_final, t), reduce(np.polymul(m3, old_final), t))
+                    print('Difference : ', diff)
+                    print('Multiplication noise in level',iterator,' :', norm(mul_noise(f, cimultbar, m3, old_final)))
+                    print("Multiplication max allowed noise: ", const)
+
+                    cc_prev=ccc
+                    old_final=new_final
+                    comparison = diff==[0]
+                    iterator += 1
+
+                    print("Do u wish to repeat :(y/n)")
+                    string = input()
+                    if string=='y':
+                        continue
+                    else:
+                        break
+                except:
+                    print('Exception occured')
+                    break
+
+
+            choice=None
+
+
+
 
         else:
             break
-    
+
     print("END OF DEMO")
 
 demo()
