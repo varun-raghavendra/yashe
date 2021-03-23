@@ -458,6 +458,7 @@ def demo():
             print("2. Perform addition and print results")
             print("3. Perform multiplication")
             print("4. Print ciphertexts")
+            print("5. Make large random inputs")
             print("9. Exit")
             choice = int(input("Enter a choice: "))
         
@@ -522,6 +523,22 @@ def demo():
             print("Second cipher text is: ", c2)
 
             choice=None
+
+        elif(choice==5):
+            length = np.random.randint(20)+1
+            m1 = np.random.randint(30, size=(length))
+            m2 = np.random.randint(30, size=(length))
+            
+            m1 = reduce(m1, t, True)
+            m2 = reduce(m2, t, True)
+
+            print("The messages generated are:")
+            print("message1: ", m1)
+            print("message2: ", m2)
+            c1 = LHE_Encrypt(h, reduce(m1, t, centered=True))
+            c2 = LHE_Encrypt(h, reduce(m2, t, centered=True))
+
+            choice=None
         
         
 
@@ -533,4 +550,3 @@ def demo():
     print("END OF DEMO")
 
 demo()
-2
